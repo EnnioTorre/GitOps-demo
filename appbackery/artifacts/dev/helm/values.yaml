@@ -1,9 +1,9 @@
-app_branch: 'develop'
-app_name: 'demobakery'
-app_repo: 'https://github.com/EnnioTorre/vaadin-demo-bakery-app.git'
-cpu: '500m'
+app_branch: develop
+app_name: demobakery
+app_repo: https://github.com/EnnioTorre/vaadin-demo-bakery-app.git
+cpu: 500m
 dev_project: bookinfo
-image_tag: 'dev'
-memory: '2Gi'
+image_tag: 19065f82a75cc23b3a043c58cc2f4add55005fb4
+memory: 2Gi
 quay_repository: quay.io/enniotorre/demobackery
-replicas: '1'
+replicas: "1"
