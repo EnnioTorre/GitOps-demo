@@ -53,7 +53,6 @@ spec:
   - name: copy-artifacts
     image: $(params.MVN_IMAGE)
     workingDir: /workspace/source
-    resources: {}
     script: |
       #!/usr/bin/env bash
 
@@ -66,6 +65,7 @@ spec:
       else
 
         echo "war file does not exist-nothing to do"
+        exit -1
 
       fi
   - name: build-image
@@ -76,7 +76,7 @@ spec:
 
       IMAGE_TAG=$(cat $(results.commit.path))
 
-      if [ -z $IMAGE_TAG]
+      if [ -z $IMAGE_TAG ]
       then
         echo "no RESULT_SHA, using IMAGE_TAG from task parameters"
         IMAGE_TAG=$(params.IMAGE_TAG)
@@ -92,25 +92,6 @@ spec:
       mountPath: /var/lib/containers
     securityContext:
       privileged: true
-  - name: image-push
-    image: $(params.BUILDER_IMAGE)
-    workingDir: /workspace/source
-    volumeMounts:
-    - name: varlibcontainers
-      mountPath: /var/lib/containers
-    securityContext:
-      privileged: true
-
-  # - name: oc-build-config
-  #   image: quay.io/openshift-pipeline/openshift-cli:latest
-  #   command: ["/usr/local/bin/oc"]
-  #   workingDir: /workspace/source
-  #   args:
-  #     - start-build
-  #     - {{ include "springboot-tekton.fullname" . }}
-  #     - --from-dir=./
-  #     - -e=ARTIFACT_URL=*.war
-  #     - --follow
   volumes:
     - name: varlibcontainers
       emptyDir: {}

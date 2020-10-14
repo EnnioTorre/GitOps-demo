@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: build-image-task-sa
+secrets:
+  - name: quay-cicd-secret-2
+---
+apiVersion: v1
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJxdWF5LmlvIjp7InVzZXJuYW1lIjoiZW5uaW90b3JyZStvc2J1aWxkZXIiLCJwYXNzd29yZCI6IjIzUVAwT0tNV0NLREtQQ1JNVVREMVc0RFI2WjM2WFA0N1lRS0JHRURHWERBS1VYV05WVVBTU1FZRlc3U09STEwiLCJhdXRoIjoiWlc1dWFXOTBiM0p5WlN0dmMySjFhV3hrWlhJNk1qTlJVREJQUzAxWFEwdEVTMUJEVWsxVlZFUXhWelJFVWpaYU16WllVRFEzV1ZGTFFrZEZSRWRZUkVGTFZWaFhUbFpWVUZOVFVWbEdWemRUVDFKTVRBPT0ifX19
+kind: Secret
+metadata:
+  name: quay-cicd-secret-2
+  namespace: bookinfo
+type: kubernetes.io/dockerconfigjson

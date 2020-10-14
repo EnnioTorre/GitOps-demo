@@ -1,0 +1,20 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-test-deploy-in-all-env
+spec:
+  params:
+    - name: "env"
+  tasks:
+    - name: deploy-dev
+      taskRef:
+        name: deploy
+      conditions:
+        - conditionRef: is-master-branch
+          params:
+          - name: $(params.env)
+            value: dev
+    #   when:
+    #     - input: "$(params.env)"
+    #       operator: in
+    #       values: [ "dev" ]

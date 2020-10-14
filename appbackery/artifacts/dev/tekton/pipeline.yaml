@@ -1,3 +1,36 @@
+---
+# https://developer.ibm.com/components/tekton/blogs/goodbye-tekton-condition-crd/
+# tested with tekton pipelines<0.16!
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: check-if-dev
+spec:
+  params:
+    - name: "env"
+  check:
+    image: alpine
+    script: |
+      if [ $(params.env) != "dev" ]; then
+        exit 1
+      fi
+      exit 0
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: check-if-not-dev
+spec:
+  params:
+    - name: "env"
+  check:
+    image: alpine
+    script: |
+      if [ $(params.env) == "dev" ]; then
+        exit 1
+      fi
+      exit 0
+---
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
@@ -23,39 +56,26 @@ spec:
   - name: MVN_IMAGE
     type: string
     description: image to be build from the code
-  - name: GIT_URL
+    default: 'maven:3.6.3-jdk-8'
+  - name: K8_MANIFESTS_REPO
     type: string
-    description: url of the git repo for the code of deployment
-  - name: GIT_REVISION
+    description: repo name of the kubernetes manifests for deployment
+    default: "EnnioTorre/appbackery-cicd-demo"
+  - name: K8_MANIFESTS_REVISION
     type: string
-    description: revision to be used from repo of the code for deployment
-    default: "master"
+    description: revision to be used from repo of the kubernetes manifests for deployment
+    default: "GitOps"
   - name: BUILDER_IMAGE
     description: buildah builder image.
     default: quay.io/buildah/stable:v1.14.3
   - name: IMAGE_URL
     description: The location of the buildah builder image.
-    default: image-registry.openshift-image-registry.svc:5000
   - name: IMAGE_TAG
     description: The applicaton image tag.
     default: latest
   - name: PROJECT_NAME
     description: The project name.
   tasks:
-  # - name: fetch-repository
-  #   taskRef:
-  #     name: git-clone
-  #     kind: ClusterTask
-  #     resources:
-  #       - name: source
-  #         resource: app-git
-  #   params:
-  #   - name: url
-  #     value: $(params.GIT_URL)
-  #   - name: subdirectory
-  #     value: ""
-  #   - name: deleteExisting
-  #     value: "true"
   - name: junit-test
     taskRef:
       name: maven-task
@@ -110,15 +130,27 @@ spec:
       inputs:
       - name: source
         resource: app-git
-  - name: deploy-image
+  - name: deploy-image-to-dev
     taskRef:
       name: deploy-task
       kind: Task
+    conditions:
+      - conditionRef: check-if-dev
+        params:
+          - name: env
+            value: $(params.K8_MANIFESTS_REVISION)
+    # cannot be used with the tekton version provided by Opesnhift 4.5.X
+    # admission webhook "webhook.pipeline.tekton.dev" denied the request: mutation failed: cannot decode incoming new object: json: unknown field "when"
+    # Tekton Pipeline v0.16 includes When Expressions: https://developer.ibm.com/components/tekton/blogs/goodbye-tekton-condition-crd
+    # when:
+    #   - input: "$(params.K8_MANIFESTS_REVISION)"
+    #     operator: in
+    #     values: [ "prod" ]
     params:
     - name: IMAGE_URL
       value: $(params.IMAGE_URL)
     - name: IMAGE_TAG
-      value: $(params.IMAGE_TAG)
+      value: $(tasks.build-image.results.commit)
     - name: DEPLOYMENT
       value: $(params.APP_NAME)
     - name: PROJECT_NAME
@@ -126,24 +158,57 @@ spec:
     runAfter:
     - build-image
     - junit-test
-    resources:
-      inputs:
-      - name: source
-        resource: app-git
-#     - name: source
-#       workspace: shared-workspace
-#     runAfter:
-#     - build-image
-#   - name: update-deployment
-#     taskRef:
-#       name: update-deployment
-#     workspaces:
-#     - name: source
-#       workspace: shared-workspace
-#     params:
-#     - name: deployment
-#       value: $(params.deployment-name)
-#     - name: IMAGE
-#       value: $(params.IMAGE)
-#     runAfter:
-#     - apply-manifests
+  - name: update-dev-image
+    taskRef:
+      name: image-updater
+    runAfter:
+      - deploy-image-to-dev
+    params:
+      - name: driver
+        value: "github"
+      - name: file-path
+        value: "appbackery/artifacts/dev/helm/values.yaml"
+      - name: image-repo
+        value: "$(params.IMAGE_URL)"
+      - name: new-image-url
+        value: "$(tasks.build-image.results.commit)"
+      - name: source-branch
+        value: "$(params.K8_MANIFESTS_REVISION)"
+      - name: source-repo
+        value: "$(params.K8_MANIFESTS_REPO)"
+      - name: update-key
+        value: "image_tag"
+      - name: insecure
+        value: "true"
+      - name: branch-generate-name
+        value: ""
+  - name: promote-dev-image
+    taskRef:
+      name: image-updater
+    conditions:
+      - conditionRef: check-if-not-dev
+        params:
+          - name: env
+            value: $(params.K8_MANIFESTS_REVISION)
+    runAfter:
+      - build-image
+      - junit-test
+    params:
+      - name: driver
+        value: "github"
+      - name: file-path
+        value: "appbackery/artifacts/dev/helm/values.yaml"
+      - name: image-repo
+        value: "$(params.IMAGE_URL)"
+      - name: new-image-url
+        value: "$(tasks.build-image.results.commit)"
+      - name: source-branch
+        value: "$(params.K8_MANIFESTS_REVISION)"
+      - name: source-repo
+        value: "$(params.K8_MANIFESTS_REPO)"
+      - name: update-key
+        value: "image_tag"
+      - name: insecure
+        value: "true"
+      - name: branch-generate-name
+        value: "promote-"
