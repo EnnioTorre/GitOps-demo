@@ -3,7 +3,7 @@ curl -X POST \
   -H 'Content-Type: application/json' \
   -H 'X-Hub-Signature: sha1=2da37dcb9404ff17b714ee7a505c384758ddeb7b' \
   -d '{
-    "ref": "refs/heads/GitOps",
+    "ref": "refs/heads/develop",
 	"repository":
 	{
         "name": "vaadin-demo-bakery-app",
