@@ -1,8 +1,7 @@
-app_branch: develop
 app_name: demobakery
 app_repo: https://github.com/EnnioTorre/vaadin-demo-bakery-app.git
 cpu: 500m
-dev_project: bookinfo
+namespace: bookinfo
 image_tag: 19065f82a75cc23b3a043c58cc2f4add55005fb4
 memory: 2Gi
 quay_repository: quay.io/enniotorre/demobackery

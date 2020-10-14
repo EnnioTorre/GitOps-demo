@@ -60,11 +60,11 @@ spec:
   - name: K8_MANIFESTS_REPO
     type: string
     description: repo name of the kubernetes manifests for deployment
-    default: "EnnioTorre/appbackery-cicd-demo"
+    default: "EnnioTorre/GitOps-demo"
   - name: K8_MANIFESTS_REVISION
     type: string
     description: revision to be used from repo of the kubernetes manifests for deployment
-    default: "GitOps"
+    default: "master"
   - name: BUILDER_IMAGE
     description: buildah builder image.
     default: quay.io/buildah/stable:v1.14.3
@@ -167,7 +167,7 @@ spec:
       - name: driver
         value: "github"
       - name: file-path
-        value: "appbackery/artifacts/dev/helm/values.yaml"
+        value: "appbackery/artifacts/$(params.K8_MANIFESTS_REVISION)/helm/values.yaml"
       - name: image-repo
         value: "$(params.IMAGE_URL)"
       - name: new-image-url
@@ -197,7 +197,7 @@ spec:
       - name: driver
         value: "github"
       - name: file-path
-        value: "appbackery/artifacts/dev/helm/values.yaml"
+        value: "appbackery/artifacts/$(params.K8_MANIFESTS_REVISION)/helm/values.yaml"
       - name: image-repo
         value: "$(params.IMAGE_URL)"
       - name: new-image-url

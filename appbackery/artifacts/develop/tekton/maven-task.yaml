@@ -34,19 +34,4 @@ spec:
     - --update-snapshots
     - -Dmaven.repo.local=/workspace/source/.m2
     - $(params.GOALS)
-  - name: copy-artifacts
-    image: 'quay.io/openshift-pipeline/openshift-cli:latest'
-    resources: {}
-    script: |
-      #!/usr/bin/env bash
-
-      if ls /workspace/source/$(params.WAR_CONTEXT)/*.war 1> /dev/null 2>&1; then
-      
-        cp -f /workspace/source/$(params.WAR_CONTEXT)/*.war /workspace/source/$(params.GIT_CONTEXT_DIR_DOCKER)
-
-      else
-
-        echo "war file does not exist"
-
-      fi
   

@@ -3,10 +3,9 @@ kind: Service
 metadata:
   labels:
     app: {{ .Values.app_name }}
-    group: demobackery
-    template: demobackery
+    template: {{ .Chart.Name }}
   name: {{ .Values.app_name }}
-  namespace: {{ .Values.dev_project }}
+  namespace: {{ .Values.namespace }}
 spec:
   ports:
   - name: http-port

@@ -86,7 +86,7 @@ spec:
       - name: github-listener
         interceptors:
         - cel:
-            filter: "body.ref in ['refs/heads/develop', 'refs/heads/test', 'refs/heads/prod', 'refs/heads/GitOps']"
+            filter: "body.ref in ['refs/heads/develop', 'refs/heads/test', 'refs/heads/prod']"
             overlays:
               - key: extensions.truncated_sha
                 expression: "truncate(body.head_commit.id,7)"

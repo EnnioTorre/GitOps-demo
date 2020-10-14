@@ -3,14 +3,14 @@ kind: DeploymentConfig
 metadata:
   labels:
     app: {{ .Values.app_name }}
-    group: demobackery
-    template: demobackery
+    template: {{ .Chart.Name }}
   name: {{ .Values.app_name }}
-  namespace: {{ .Values.dev_project }}
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     app: {{ .Values.app_name }}
+    version: {{ .Values.image_tag | trunc 7}}
   strategy:
     activeDeadlineSeconds: 21600
     resources: {}

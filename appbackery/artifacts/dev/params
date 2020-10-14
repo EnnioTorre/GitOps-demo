@@ -1,8 +1,0 @@
-APP_NAME=demobackery
-MEMORY=2Gi
-CPU=500m
-REPLICAS=1
-IMAGE_TAG=dev
-QUAY_REPOSITORY=quay.io/enniotorre/demobackery
-APP_REPO=https://github.com/EnnioTorre/vaadin-demo-bakery-app.git
-APP_BRANCH=master

@@ -39,6 +39,8 @@ spec:
   results:
     - description: The precise commit SHA that was fetched by this Task
       name: commit
+    - description: The first tag containing the commit
+      name: tag
   steps:
   - name: maven-exec
     image: $(params.MVN_IMAGE)
@@ -57,10 +59,14 @@ spec:
       #!/usr/bin/env bash
 
       if ls $(params.WAR_CONTEXT)/*.war 1> /dev/null 2>&1; then
-      
+        # copy war into the DOckerfile folder.
         cp -f $(params.WAR_CONTEXT)/*.war $(params.GIT_CONTEXT_DIR_DOCKER)
+
+        # store some git info.
         RESULT_SHA="$(git rev-parse HEAD | tr -d '\n')"
+        RESULT_TAG="$(git describe --exact-match $RESULT_SHA 2>/dev/null| tr -d '\n')"
         echo -n "$RESULT_SHA" > $(results.commit.path)
+        echo -n "$RESULT_TAG" > $(results.tag.path)
 
       else
 
@@ -74,7 +80,12 @@ spec:
     script: |
       #!/usr/bin/env bash
 
-      IMAGE_TAG=$(cat $(results.commit.path))
+      IMAGE_TAG=$(cat $(results.tag.path))
+      if [ -z $IMAGE_TAG ]
+      then
+        echo "no RESULT_TAG, fetching commit ID"
+        IMAGE_TAG=$(cat $(results.commit.path))
+      fi
 
       if [ -z $IMAGE_TAG ]
       then
