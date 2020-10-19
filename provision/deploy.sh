@@ -83,6 +83,11 @@ function deploy() {
   local envs="develop stage prod"
   local project
   local pipe_sa
+  local pipeline_params="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$env/tekton/values.yaml"
+  local pipeline="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$env/tekton/demobackery-pipeline-v0.0.1.tgz?raw=true"
+  local app_params="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$env/helm/values.yaml"
+  local manifests="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$env/helm/demobackery-pipeline-v0.0.1.tgz?raw=true"
+
  
   for env in $env
   do
@@ -103,51 +108,14 @@ function deploy() {
         exit -1
     fi
 
+    sleep 2
 
-  local 
+    echo "create pipeline in $env-$APP_NAME ......."
+    helm template -f $params ${APP_NAME}-pipeline --set namespace=$env-$APP_NAME --set app_name=$APP_NAME $pipeline |oc apply -f -
 
-  project=$(oc $ARG_OC_OPS get project -o name|grep prod-$APP_NAME)
-  if [ -z "$project" ]
-  then
-       oc $ARG_OC_OPS new-project prod-$APP_NAME   --display-name="${APP_NAME} - Prod" 1>/dev/null
-  else 
-       echo "project with name prod-$APP_NAME already exists"
-  fi
-  
-
-  sleep 2
-  local jenkins=$(oc $ARG_OC_OPS -n dev-$APP_NAME get dc -o name|grep jenkins)
-  if [ -z "$jenkins" ]
-  then
-      echo "create jenkins in dev-$APP_NAME ......." 
-      oc $ARG_OC_OPS new-app jenkins-ephemeral -n dev-$APP_NAME
-  else 
-     echo "Jenkins already exists" 
-  fi
- 
-
-  sleep 2
-
-  local template="https://raw.githubusercontent.com/EnnioTorre/vaadin-demo-bakery-app/master/kubernetes/$ENV/deployment.yaml"
-  local params="../appbackery/artifacts/$ENV/params"
-  local pipeline="https://raw.githubusercontent.com/EnnioTorre/vaadin-demo-bakery-app/master/kubernetes/$ENV/pipeline.yaml"
-
-  echo "deploy application artifacts in $ENV-$APP_NAME ......."
-  oc $ARG_OC_OPS process -p APP_NAME=$APP_NAME --param-file $params -f $template -n $ENV-$APP_NAME|oc $ARG_OC_OPS apply -n $ENV-$APP_NAME -f -
-
-  sleep 2
-
-  echo "deploy CI/CD jenkins pipeline in $ENV-$APP_NAME ......."
-  oc $ARG_OC_OPS process -p APP_NAME=$APP_NAME --param-file $params -f $pipeline|oc $ARG_OC_OPS apply -f -
-  sleep 2
-  
-  ENV="prod"
-
-  template="https://raw.githubusercontent.com/EnnioTorre/vaadin-demo-bakery-app/master/kubernetes/$ENV/deployment.yaml"
-  params="../appbackery/artifacts/$ENV/params"
-
-  echo "deploy application artifacts in $ENV-$APP_NAME ......."
-  oc $ARG_OC_OPS process -p APP_NAME=$APP_NAME --param-file $params -f $template -n $ENV-$APP_NAME|oc $ARG_OC_OPS apply -n $ENV-$APP_NAME -f -
+    echo "install application's manifests in $env-$APP_NAME ......."
+    helm upgrade --install -f $params ${APP_NAME}-pipeline --set namespace=$env-$APP_NAME --set app_name=$APP_NAME $pipeline
+  done  
 }
 
 
