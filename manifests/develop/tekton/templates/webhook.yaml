@@ -2,7 +2,7 @@
 apiVersion: triggers.tekton.dev/v1alpha1 
 kind: TriggerBinding 
 metadata:
-    name: demobakery 
+    name: {{ .Values.app_name }}
 spec:
     params: 
     - name: git-repo-url
@@ -17,7 +17,7 @@ spec:
 apiVersion: triggers.tekton.dev/v1alpha1 
 kind: TriggerTemplate 
 metadata:
-    name: demobakery 
+    name:  {{ .Values.app_name }} 
 spec:
     params: 
     - name: git-repo-url
@@ -51,19 +51,21 @@ spec:
         spec:
           params:
             - name: APP_NAME
-              value: demobakery
+              value:  {{ .Values.app_name }}
             - name: PROJECT_NAME
-              value: bookinfo
+              value:  {{ .Values.namespace }}
             - name: GIT_CONTEXT_DIR_KUBERNETES
-              value: kubernetes/dev
+              value: {{ .Values.kubernetes_dir }}
             - name: GIT_CONTEXT_DIR_DOCKER
-              value: kubernetes/dev
+              value: {{ .Values.docker_dir }}
             - name: WAR_CONTEXT
-              value: ./target
+              value: {{ .Values.target_dir }}
             - name: K8_MANIFESTS_REVISION
               value: $(params.git-ref)
             - name: IMAGE_URL
-              value: quay.io/enniotorre/demobackery
+              value: {{ .Values.image_url }}
+            - name: K8_MANIFESTS_REPO
+              value: {{ .Values.manifests_repo }}
           pipelineRef:
               name: build-and-deploy
           serviceAccountName: pipeline

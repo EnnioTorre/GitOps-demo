@@ -12,5 +12,5 @@ data:
 kind: Secret
 metadata:
   name: quay-cicd-secret-2
-  namespace: bookinfo
+  namespace: {{ .Values.namespace }}
 type: kubernetes.io/dockerconfigjson

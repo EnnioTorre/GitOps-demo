@@ -1,0 +1,8 @@
+app_name: demobakery
+app_repo: https://github.com/EnnioTorre/vaadin-demo-bakery-app.git
+namespace: bookinfo
+image_url: quay.io/enniotorre/demobackery
+docker_dir: kubernetes/dev
+kubernetes_dir: kubernetes/dev
+target_dir: target
+manifests_repo: EnnioTorre/GitOps-demo

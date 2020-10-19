@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: app-backery-tekton-pipeline
+  generateName: {{ .Values.app_name }}-pipelineRun
   labels:
     tekton.dev/pipeline: build-and-deploy
 spec:
