@@ -1,0 +1,11 @@
+apiVersion: v1
+entries:
+  demobackery-pipeline:
+  - apiVersion: v1
+    created: "2020-10-19T17:02:41.8287328+02:00"
+    digest: 8c14f6e36f38c1b58d1c3a94e0eede12e8c960a9c54710def707efda0b086a16
+    name: demobackery-pipeline
+    urls:
+    - demobackery-pipeline-v0.0.1.tgz
+    version: v0.0.1
+generated: "2020-10-19T17:02:41.8277579+02:00"
