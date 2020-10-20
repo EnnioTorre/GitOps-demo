@@ -80,28 +80,23 @@ GITHUB_APP_URL="https://github.com/EnnioTorre/vaadin-demo-bakery-app.git"
 
 function deploy() {
 
-  local envs="develop stage prod"
+  local envs="develop"
   local project
   local pipe_sa
-  local pipeline_params="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$env/tekton/values.yaml"
-  local pipeline="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$env/tekton/demobackery-pipeline-v0.0.1.tgz?raw=true"
-  local app_params="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$env/helm/values.yaml"
-  local manifests="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$env/helm/demobackery-pipeline-v0.0.1.tgz?raw=true"
-
  
-  for env in $env
+  for ENV in $envs
   do
-    project=$(oc $ARG_OC_OPS get project -o name|grep $env-$APP_NAME)
+    project=$(oc $ARG_OC_OPS get project -o name|grep $ENV-$APP_NAME)
     if [ -z "$project" ]
     then
-        oc $ARG_OC_OPS new-project $env-$APP_NAME   --display-name="${APP_NAME} - Dev" 1>/dev/null
+        oc $ARG_OC_OPS new-project $ENV-$APP_NAME   --display-name="${APP_NAME} - Dev" 1>/dev/null
     else 
-        echo "project with name $env-$APP_NAME already exists" 
+        echo "project with name $ENV-$APP_NAME already exists" 
     fi
     
     sleep 10
 
-    pipe_sa=$(oc $ARG_OC_OPS -n $env-$APP_NAME get sa pipeline)
+    pipe_sa=$(oc $ARG_OC_OPS -n $ENV-$APP_NAME get sa pipeline)
     if [ -z "$pipe_sa" ]
     then
         echo "please deploy the Openshift pipelines Operator first!"
@@ -110,11 +105,16 @@ function deploy() {
 
     sleep 2
 
-    echo "create pipeline in $env-$APP_NAME ......."
-    helm template -f $params ${APP_NAME}-pipeline --set namespace=$env-$APP_NAME --set app_name=$APP_NAME $pipeline |oc apply -f -
+    local params="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$ENV/tekton/values.yaml"
+    local pipeline="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$ENV/tekton/demobackery-pipeline-v0.0.1.tgz?raw=true"
+    local app_params="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$ENV/helm/values.yaml"
+    local manifests="https://raw.githubusercontent.com/EnnioTorre/GitOps-demo/master/manifests/$ENV/helm/demobackery-pipeline-v0.0.1.tgz?raw=true"
 
-    echo "install application's manifests in $env-$APP_NAME ......."
-    helm upgrade --install -f $params ${APP_NAME}-pipeline --set namespace=$env-$APP_NAME --set app_name=$APP_NAME $pipeline
+    echo "create pipeline in $ENV-$APP_NAME ......."
+    helm template -f $pipeline_params ${APP_NAME}-pipeline --set namespace=$ENV-$APP_NAME --set app_name=$APP_NAME $pipeline |oc apply -f -
+
+    echo "install application's manifests in $ENV-$APP_NAME ......."
+    helm upgrade --install -f $app_params  ${APP_NAME}-pipeline --set namespace=$ENV-$APP_NAME --set app_name=$APP_NAME $manifests
   done  
 }
 
