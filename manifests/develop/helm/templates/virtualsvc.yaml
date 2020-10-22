@@ -5,8 +5,8 @@ metadata:
 spec:
   hosts:
   - {{ $.Values.app_name }}
-  gateways:
-  - {{ .Values.app_name }}-gateway
+  #gateways:
+  #- {{ .Values.app_name }}-gateway
   http:
   - route:
     {{- range .Values.releases }}
@@ -28,5 +28,5 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - "*"
+    - "istio-ingressgateway-istio-system.apps.osdev.cp.cloud"
 ---

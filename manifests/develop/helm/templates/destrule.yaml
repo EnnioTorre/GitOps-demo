@@ -4,9 +4,9 @@ metadata:
   name: {{ $.Values.app_name }}
 spec:
   host: {{ $.Values.app_name }}
-  trafficPolicy:
-    loadBalancer:
-      simple: ROUND_ROBIN
+  #trafficPolicy:
+  #  loadBalancer:
+  #    simple: ROUND_ROBIN
   subsets:
   {{- range .Values.releases }}
   - name: {{ .version }}
