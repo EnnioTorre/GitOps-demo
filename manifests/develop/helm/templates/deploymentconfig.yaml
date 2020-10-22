@@ -14,15 +14,19 @@ spec:
       app: {{ $.Values.app_name }}
       version: {{ .version | trunc 7}}
   strategy:
-    activeDeadlineSeconds: 21600
+   # activeDeadlineSeconds: 21600
     resources: {}
-    rollingParams:
-      intervalSeconds: 1
-      maxSurge: 25%
-      maxUnavailable: 25%
-      timeoutSeconds: 600
-      updatePeriodSeconds: 1
-    type: Rolling
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+    #rollingParams:
+     # intervalSeconds: 1
+     # maxSurge: 25%
+     # maxUnavailable: 25%
+     # timeoutSeconds: 600
+      #updatePeriodSeconds: 1
+    # type: Rolling
   template:
     metadata:
       labels:
