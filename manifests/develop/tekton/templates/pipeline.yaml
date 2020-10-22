@@ -135,7 +135,7 @@ spec:
       name: deploy-task
       kind: Task
     conditions:
-      - conditionRef: check-if-dev
+      - conditionRef: check-if-not-dev
         params:
           - name: env
             value: $(params.K8_MANIFESTS_REVISION)
@@ -156,37 +156,29 @@ spec:
     - name: PROJECT_NAME
       value: $(params.PROJECT_NAME)
     runAfter:
-    - build-image
-    - junit-test
+      - build-image
+      - junit-test
   - name: update-dev-image
     taskRef:
       name: image-updater
     runAfter:
       - deploy-image-to-dev
     params:
-      - name: driver
-        value: "github"
-      - name: file-path
-        value: "appbackery/artifacts/$(params.K8_MANIFESTS_REVISION)/helm/values.yaml"
-      - name: image-repo
-        value: "$(params.IMAGE_URL)"
-      - name: new-image-url
-        value: "$(tasks.build-image.results.commit)"
-      - name: source-branch
+      - name: FILE_PATH
+        value: "manifests/$(params.K8_MANIFESTS_REVISION)/helm/values.yaml"
+      - name: IMAGE_TAG
+        value: "$(params.IMAGE_TAG)"
+      - name: SRC_BRANCH
         value: "$(params.K8_MANIFESTS_REVISION)"
-      - name: source-repo
+      - name: SRC_REPO
         value: "$(params.K8_MANIFESTS_REPO)"
-      - name: update-key
-        value: "image_tag"
-      - name: insecure
-        value: "true"
-      - name: branch-generate-name
-        value: ""
+      - name: DEST_BRANCH
+        value: "pull-test"
   - name: promote-dev-image
     taskRef:
       name: image-updater
     conditions:
-      - conditionRef: check-if-not-dev
+      - conditionRef: check-if-dev
         params:
           - name: env
             value: $(params.K8_MANIFESTS_REVISION)

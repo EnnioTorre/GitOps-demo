@@ -1,0 +1,75 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: release-updater
+spec:
+  resources:
+    inputs:
+    - name: source
+      type: git
+  params:
+  - name: IMAGE_TAG
+    type: string
+    description: image tag
+  - name: TLSVERIFY
+    type: string
+    description: insecure
+    default: "false"
+  - name: FILE_PATH
+    type: string
+    description: Path within the source-repo to update
+  - name: DEST_BRANCH
+    type: string
+    description: Branch to create for updating
+  - name: SRC_BRANCH
+    type: string
+    description: Branch to create for updating
+  - name: SRC_REPO
+    type: string
+    description: Git repository to update e.g. org/repo
+  steps:
+  - name: create-release
+    image: docker.io/mikefarah/yq
+    workingDir: /workspace/source
+    script: |
+      RULE_INDEX=$(yq r $(params.FILE_PATH) --length releases)
+      echo "number of deployed versions:"
+      echo $((RULE_INDEX+1))
+      
+      
+      key_list=$(yq r $(params.FILE_PATH) --printMode p releases[0].*)
+      echo "Create release with following properties: $key_list"
+      
+      IFS=$'\n';for i in $key_list ;do yq w -i $(params.FILE_PATH) releases[$RULE_INDEX].${i##*.} $(yq r $(params.FILE_PATH) $i) ; done
+      unset IFS
+      
+      yq w -i $(params.FILE_PATH) releases[$RULE_INDEX].version $(params.IMAGE_TAG)
+      yq w -i $(params.FILE_PATH) releases[$RULE_INDEX].image_tag $(params.IMAGE_TAG)
+  - name: git-push
+    image: gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.12.1
+    workingDir: /workspace/source
+    script: |
+      echo $(git status)
+      cat ~/.gitconfig
+      git config --global user.email "tekton@git.ops"
+      git config --global user.name "TektonGit"
+      PULL_BRANCH=$(params.DEST_BRANCH)-$(date|base64|head -c 5)
+      git checkout -b $PULL_BRANCH
+      git add .
+      MESSAGE="Automated commit by Tekton: $PULL_BRANCH"
+      git commit -m "$MESSAGE"
+      git push origin PULL_BRANCH
+
+      if [ $(params.DEST_BRANCH) != $(params.SRC_BRANCH) ]
+      then
+        curl -u tekton:$AUTH_TOKEN -X POST https://api.github.com/repos/$(params.SRC_REPO)/pulls \
+        -d "{\"title\":\"$MESSAGE\",
+             \"base\":\"$(params.SRC_BRANCH)\",
+             \"head\":\"$PULL_BRANCH\"}"
+      fi
+    env:
+      - name: AUTH_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: release-updater-secret
+            key: token

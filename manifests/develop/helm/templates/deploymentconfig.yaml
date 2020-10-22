@@ -1,16 +1,18 @@
+{{- range .Values.releases }}
 apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
 metadata:
   labels:
-    app: {{ .Values.app_name }}
-    template: {{ .Chart.Name }}
-  name: {{ .Values.app_name }}
-  namespace: {{ .Values.namespace }}
+    app: {{ $.Values.app_name }}
+    template: {{ $.Chart.Name }}
+  name: {{ $.Values.app_name }}-{{ .version | trunc 7}}
+  namespace: {{ $.Values.namespace }}
 spec:
-  replicas: {{ .Values.replicas }}
+  replicas: {{ .replicas }}
   selector:
-    app: {{ .Values.app_name }}
-    version: {{ .Values.image_tag | trunc 7}}
+    matchLabels:
+     app: {{ $.Values.app_name }}
+     version: {{ .version | trunc 7}}
   strategy:
     activeDeadlineSeconds: 21600
     resources: {}
@@ -24,13 +26,13 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ .Values.app_name }}
-        version: {{ .Values.image_tag | trunc 7}}
+        app: {{ $.Values.app_name }}
+        version: {{ .version | trunc 7}}
     spec:
       containers:
-      - image: {{ .Values.quay_repository }}:{{ .Values.image_tag }}
+      - image: {{ .quay_repository }}:{{ .image_tag }}
         imagePullPolicy: Always
-        name: {{ .Values.app_name }}
+        name: {{ $.Values.app_name }}
         ports:
         - containerPort: 8080
           name: 8080-tcp
@@ -45,8 +47,8 @@ spec:
           timeoutSeconds: 1
         resources:
           limits:
-            cpu: {{ .Values.cpu }}
-            memory: {{ .Values.memory }}
+            cpu: {{ .cpu }}
+            memory: {{ .memory }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
@@ -56,3 +58,4 @@ spec:
       terminationGracePeriodSeconds: 30
   test: false
   triggers: []
+{{- end }}
