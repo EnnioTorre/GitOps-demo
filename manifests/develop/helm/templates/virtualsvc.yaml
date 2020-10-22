@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.app_name }}
 spec:
   hosts:
-  - {{ $.Values.app_name }}
+  - istio-ingressgateway-istio-system.apps.osdev.cp.cloud
   gateways:
   - {{ .Values.app_name }}-gateway
   http:
@@ -13,6 +13,8 @@ spec:
     - destination:
         host: {{ $.Values.app_name }}
         subset: {{ .version }}
+        port:
+          number: 8080
     {{- end }}
 ---
 apiVersion: networking.istio.io/v1alpha3
@@ -28,5 +30,5 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - "*"
+    - "istio-ingressgateway-istio-system.apps.osdev.cp.cloud"
 ---
