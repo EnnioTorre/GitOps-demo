@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     app: {{ .Values.app_name }}
-    template: {{ .Chart.Name }}
+    service: {{ .Values.app_name }}
   name: {{ .Values.app_name }}
   namespace: {{ .Values.namespace }}
 spec:
