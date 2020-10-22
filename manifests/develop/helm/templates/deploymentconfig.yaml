@@ -5,6 +5,7 @@ metadata:
   labels:
     app: {{ $.Values.app_name }}
     template: {{ $.Chart.Name }}
+    version: {{ .version | trunc 7}}
   name: {{ $.Values.app_name }}-{{ .version | trunc 7}}
   namespace: {{ $.Values.namespace }}
 spec:
