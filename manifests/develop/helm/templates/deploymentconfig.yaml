@@ -10,7 +10,6 @@ metadata:
 spec:
   replicas: {{ .replicas }}
   selector:
-    matchLabels:
      app: {{ $.Values.app_name }}
      version: {{ .version | trunc 7}}
   strategy:
