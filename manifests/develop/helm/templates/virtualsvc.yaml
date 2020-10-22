@@ -5,8 +5,8 @@ metadata:
 spec:
   hosts:
   - {{ $.Values.app_name }}
-  #gateways:
-  #- {{ .Values.app_name }}-gateway
+  gateways:
+  - {{ .Values.app_name }}-gateway
   http:
   - route:
     {{- range .Values.releases }}
